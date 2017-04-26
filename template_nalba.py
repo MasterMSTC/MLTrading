@@ -6,12 +6,6 @@ import operator
 from time import time
 from sklearn.metrics import confusion_matrix
 from sklearn.ensemble import RandomForestClassifier
-from sklearn import svm
-from sklearn import linear_model
-from sklearn.neighbors.nearest_centroid import NearestCentroid
-from sklearn.linear_model import SGDClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.ensemble import AdaBoostClassifier
 from sklearn import tree
 
 #from sklearn.neural_network import MLPClassifier
