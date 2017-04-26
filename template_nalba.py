@@ -211,7 +211,8 @@ def iamb2(df, vars, target, eps_g=1e-5, eps_s=1e-4):
 def find_optimal_predictors(df):
 
 
-    features=df.keys()-["TAR5","TAR10","TAR24","Close"]
+    # features=df.keys()-["TAR5","TAR10","TAR24","Close"]
+    features = df.keys().drop(["TAR5","TAR10","TAR24","Close"],1)
 
     return iamb2(df,features, "TAR10",1e-5,1e-6)
 
@@ -255,7 +256,8 @@ def train_predictor(df, markov_blanket, p_train=0.6):
     scores2 = confusion_matrix(yc, clf1.predict(xc), labels=[0, 1])
     print(scores)
     print(scores2)
-    tree.export_graphviz(clf1, out_file='D:\MLmaster\Tree.dot', class_names=ynames, feature_names=xnames)
+    tree.export_graphviz(clf1, out_file='output/Tree.dot', class_names=ynames,
+                         feature_names=xnames)
     return rf
 
 
@@ -281,4 +283,4 @@ def main(path, filename):
 
 if __name__ == "__main__":
 
-    main("D:\MLmaster", "CLdata.csv")
+    main("./", "CLdata.csv")
