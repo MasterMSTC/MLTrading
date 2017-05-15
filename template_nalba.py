@@ -6,16 +6,11 @@ import operator
 from time import time
 from sklearn.metrics import confusion_matrix
 from sklearn.ensemble import RandomForestClassifier
-from sklearn import svm
-from sklearn import linear_model
-from sklearn.neighbors.nearest_centroid import NearestCentroid
-from sklearn.linear_model import SGDClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.ensemble import AdaBoostClassifier
 from sklearn import tree
 
-#from sklearn.neural_network import MLPClassifier
+# from sklearn.neural_network import MLPClassifier
 from probabilityDistribution import get_probabilities, ProbabilityDistribution, ConditionalProbabilityDistribution
+
 
 def measure_time(func):
     def my_decorator(*args):
@@ -30,26 +25,22 @@ def measure_time(func):
 
 @measure_time
 def read_data(path, filename):
-
     # Read data and store it into a dataframe
     df = pd.read_csv(os.path.join(path, filename), parse_dates=[["Date", "Time"]])
     print(df)
     df.index = df['Date_Time']
     del df["Date_Time"]
 
-
-
-    #Normalize some variables
+    # Normalize some variables
     for var in ['Open', 'High', 'Low', 'Parab 0.02', 'media 10', 'media 50', 'media 100',
                 'media 200', 'Xmedia 10', 'Xmedia 50', 'Xmedia 100', 'Xmedia 200', 'Hmedia 10',
                 'Hmedia 50', 'Hmedia 100', 'Hmedia 200', 'MAXIMOS10', 'MAXIMOS30', 'MINIMOS10',
-                'MINIMOS30','mediaH 200', 'XmediaH 10', 'XmediaH 50', 'XmediaH 100', 'XmediaH 200', 'HmediaH 10',
-                'HmediaH 50', 'HmediaH 100', 'HmediaH 200','mediaL 200', 'XmediaL 10', 'XmediaL 50', 'XmediaL 100',
-                'XmediaL 200', 'HmediaL 10','HmediaL 50', 'HmediaL 100', 'HmediaL 200']:
+                'MINIMOS30', 'mediaH 200', 'XmediaH 10', 'XmediaH 50', 'XmediaH 100', 'XmediaH 200', 'HmediaH 10',
+                'HmediaH 50', 'HmediaH 100', 'HmediaH 200', 'mediaL 200', 'XmediaL 10', 'XmediaL 50', 'XmediaL 100',
+                'XmediaL 200', 'HmediaL 10', 'HmediaL 50', 'HmediaL 100', 'HmediaL 200']:
         df[var] /= df["Close"]
         df[var] -= 1.
         df[var] *= 100
-
 
     return df
 
@@ -57,15 +48,14 @@ def read_data(path, filename):
 @measure_time
 def turn_floats_into_categories(df):
     # Define categories
-    cuts={}
-    nCategories=4
-    targets=["TAR5","TAR10","TAR24","Close","DAYOFWEEK"]
+    cuts = {}
+    nCategories = 4
+    targets = ["TAR5", "TAR10", "TAR24", "Close", "DAYOFWEEK"]
     for a in df:
-       if str(a) not in targets:
-           print(a)
-           paso=(df[a].max()-df[a].min())/nCategories
-           cuts.update( {a: [-np.inf,paso,2*paso,3*paso,np.inf]})
-
+        if str(a) not in targets:
+            print(a)
+            paso = (df[a].max() - df[a].min()) / nCategories
+            cuts.update({a: [-np.inf, paso, 2 * paso, 3 * paso, np.inf]})
 
     # Substitute float values by labels
     labels = {}
@@ -86,6 +76,7 @@ def turn_floats_into_categories(df):
     print(cuts)
     print(df)
     return df
+
 
 def iamb(probabilities, target, eps_g=1e-5, eps_s=1e-4):
     """
@@ -169,11 +160,11 @@ def iamb2(df, vars, target, eps_g=1e-5, eps_s=1e-4):
     t = [target]
     markov_blanket = set([])
     variables = set(vars) - set(t)
-    max_features=6
+    max_features = 6
 
     # Growing phase
 
-    while len(variables) != 0 and len(markov_blanket)<max_features:
+    while len(variables) != 0 and len(markov_blanket) < max_features:
         # Evaluate all conditional mutual information
         cmi = {}
         if len(markov_blanket) == 0:
@@ -209,11 +200,10 @@ def iamb2(df, vars, target, eps_g=1e-5, eps_s=1e-4):
 
 @measure_time
 def find_optimal_predictors(df):
+    # features=df.keys()-["TAR5","TAR10","TAR24","Close"]
+    features = df.keys().drop(["TAR5", "TAR10", "TAR24", "Close"], 1)
 
-
-    features=df.keys()-["TAR5","TAR10","TAR24","Close"]
-
-    return iamb2(df,features, "TAR10",1e-5,1e-6)
+    return iamb2(df, features, "TAR10", 1e-5, 1e-6)
 
 
 @measure_time
@@ -233,7 +223,7 @@ def train_predictor(df, markov_blanket, p_train=0.6):
 
 
     rf = RandomForestClassifier(n_estimators=5)
-    clf1 = tree.DecisionTreeClassifier(max_leaf_nodes=10,class_weight=None)
+    clf1 = tree.DecisionTreeClassifier(max_leaf_nodes=10, class_weight=None)
 
     x = df[list(markov_blanket)].values
     y = df["TAR10"].values
@@ -255,14 +245,13 @@ def train_predictor(df, markov_blanket, p_train=0.6):
     scores2 = confusion_matrix(yc, clf1.predict(xc), labels=[0, 1])
     print(scores)
     print(scores2)
-    tree.export_graphviz(clf1, out_file='D:\MLmaster\Tree.dot', class_names=ynames, feature_names=xnames)
+    tree.export_graphviz(clf1, out_file='Tree.dot', class_names=ynames,
+                         feature_names=xnames)
     return rf
 
 
 def main(path, filename):
-
-
-    #print(df)
+    # print(df)
     # Read data and pre-process it
     df = read_data(path, filename)
     print(df)
@@ -280,5 +269,4 @@ def main(path, filename):
 
 
 if __name__ == "__main__":
-
-    main("D:\MLmaster", "CLdata.csv")
+    main("./", "CLdata.csv")
